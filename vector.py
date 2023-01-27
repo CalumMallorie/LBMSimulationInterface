@@ -1,8 +1,8 @@
-import dataclasses as dataclass
+from dataclasses import dataclass
 
 @dataclass
-class Vector():
-    x: float
-    y: float
-    z: float
+class Vector3D():
+    x: float = 1
+    y: float = 1
+    z: float = 1
 
