@@ -8,6 +8,8 @@ def capillary_number_simulation(Ca, viscosity_ratio, confinement_ratio, system_s
     Args:
         Ca (float): Capillary number.
         viscosity_ratio (float): Viscosity ratio.
+        confinement_ratio (float): Confinement ratio.
+        system_size (int): System size.
 
     Returns:
         dict: A dictionary containing parameter updates for the simulation.

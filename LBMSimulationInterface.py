@@ -1,6 +1,7 @@
 import os
 import shutil
 import xml.etree.ElementTree as ET
+import re
 from xml.dom import minidom
 
 class LBMSimulationInterface:
@@ -18,12 +19,18 @@ class LBMSimulationInterface:
             template_xml_path (str): Path to the XML template file.
         """
         with open(template_xml_path, 'r') as file:
-            content = '<root>' + file.read() + '</root>'
+            lines = file.readlines()
+            # Skip the first line containing the XML declaration
+            content = ''.join(lines[1:])
 
+        # Add a temporary root element
+        content = '<root>' + content + '</root>'
         root = ET.fromstring(content)
 
+        # convert xml to list of dictionaries
         template_parameters = [self._xml_to_dict(parameter) for parameter in root]
         return template_parameters
+
     
     def calculate_new_parameters(self, template_parameters, parameter_updates):
         """
@@ -143,7 +150,7 @@ class LBMSimulationInterface:
         os.chdir(directory_name)
 
         command = "mpiexec -n 8 ./LBCode"
-        os.system(command)
+        # os.system(command)
 
         # Restore the original working directory
         os.chdir(original_cwd)
