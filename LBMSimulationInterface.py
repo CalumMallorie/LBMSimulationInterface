@@ -119,7 +119,7 @@ class LBMSimulationInterface:
         else:
             print(f"Error: The source MeshGenerator directory {source_mesh_generator} does not exist.")
 
-    def run_simulation(self, directory_name, parameter_updates_by_filen, num_cores):
+    def run_simulation(self, directory_name, parameter_updates_by_file, num_cores):
         """
         Runs the simulation in a new directory with the given name and updated parameters.
         The method handles multiple XML parameter files and updates the specified parameters in each file.
