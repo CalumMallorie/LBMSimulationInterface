@@ -48,7 +48,7 @@ class LBMSimulationInterface:
                 # Update the element_data dictionary with new values
                 self.update_parameter(new_element_data, path, new_value)
             new_parameters.append(new_element_data)
-        return new_parameters#
+        return new_parameters
         
     def write_new_parameter_file(self, directory_name, new_parameters, output_file_name):
         """
@@ -99,10 +99,6 @@ class LBMSimulationInterface:
         executable_name = "LBCode"
         source_executable = os.path.join(self.template_folder_path, executable_name)
         shutil.copy2(source_executable, os.path.join(directory_name, os.path.basename(source_executable)))
-        # if os.path.exists(source_executable):
-        #     shutil.copy2(source_executable, os.path.join(directory_name, os.path.basename(source_executable)))
-        # else:
-        #     print(f"Error: The simulation file {source_executable} does not exist.")
 
     def copy_mesh_generator_to_directory(self, directory_name):
         """
