@@ -149,8 +149,12 @@ class LBMSimulationInterface:
         # Change the working directory to the simulation directory
         os.chdir(directory_name)
 
-        command = "mpiexec -n 8 ./LBCode"
-        # os.system(command)
+        # Run the simulation with command depending on number of cores
+        if num_cores == 1:
+            command = "./LBCode"
+        else:
+            command = "mpiexec -n 8 ./LBCode"
+        os.system(command)
 
         # Restore the original working directory
         os.chdir(original_cwd)
