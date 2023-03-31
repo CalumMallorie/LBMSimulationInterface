@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 
    <MPI>
-      <cores x="2" y="2" z="2"/>
+      <cores x="1" y="1" z="2"/>
    </MPI>
    <lattice>
       <size NX="70" NY="70" NZ="72"/>
-      <times start="0" end="10000000" info="1000" sanity="1000"/>
+      <times start="0" end="5000" info="100" sanity="1000"/>
    </lattice>
    <checkpoint>
       <save step="1000000"/>
@@ -13,7 +13,7 @@
    </checkpoint>
    <LBM>
       <relaxation tau="1"/>
-      <MRT active="1" tauBulk="1" Lambda="0.08333333333333333"/>
+      <MRT active="0" tauBulk="1" Lambda="0.08333333333333333"/>
    </LBM>
    <IBM>
       <stencil range="3"/>
@@ -32,12 +32,12 @@
          <statistics active="0" step="0"/>
       </fluid>
       <particles>
-         <VTK active="1" step="1000"/>
-         <statistics active="1" step="100"/>
+         <VTK active="1" step="100"/>
+         <statistics active="1" step="10"/>
       </particles>
    </data>
    <boundaries>
-      <Couette active="0" velBotX="0" velBotY="0" velTopX="0" velTopY="0"/>
+      <Couette active="1" velBotX="0" velBotY="0" velTopX="0" velTopY="0"/>
       <CrossSlot active="0" inletWidth="0" outletWidth="0" inletVelocity="0" ForceTriggerMagnitude="None" TimeBegin="None" TimeEnd="None"/>
    </boundaries>
    <convergence>
