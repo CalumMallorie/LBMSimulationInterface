@@ -132,6 +132,7 @@ class LBMSimulationInterface:
         # Prepend the template folder path to the keys in the parameter_updates_by_file dictionary
         full_path_parameter_updates_by_file = {os.path.join(self.template_folder_path, k): v for k, v in parameter_updates_by_file.items()}
 
+        # write the new parameter files into the simulation directory
         for template_xml_path, parameter_updates in full_path_parameter_updates_by_file.items():
             template_parameters = self.read_template_xml(template_xml_path)
             new_parameters = self.calculate_new_parameters(template_parameters, parameter_updates)
@@ -149,7 +150,7 @@ class LBMSimulationInterface:
         if num_cores == 1:
             command = "./LBCode"
         else:
-            command = "mpiexec -n 8 ./LBCode"
+            command = f"mpiexec -n {num_cores} ./LBCode"
         os.system(command)
 
         # Restore the original working directory
