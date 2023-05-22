@@ -2,6 +2,190 @@ import os
 import shutil
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+import numpy as np
+import glob
+import pyvista as pv
+import re
+import math
+
+def viscosity(tau):
+    '''Calculates the lattice viscosity based on tau'''
+    viscosity = (1/3)*(tau - 0.5)
+    return viscosity
+
+def grid_reynolds_check(tau, velocity):
+    """
+    Checks whether the grid Reynolds number is sufficiently small according to equation 7.18 in the LBM book
+    """
+    test_parameter = 0.5 + 0.125*velocity
+    if tau < test_parameter:
+        return True # fails the test
+    else:
+        return False # passes the test
+    
+def merging(datapath):
+    # Find all files matching the pattern without specifying the timestep
+    file_pattern = f"{datapath}Fluid_p*_t*.vtk"
+    file_list = glob.glob(file_pattern)
+
+    # Extract the timesteps from the filenames and find the largest timestep
+    timesteps = [int(re.search(r"_t(\d+).vtk", f_name).group(1)) for f_name in file_list]
+    largest_timestep = max(timesteps)
+
+    # Update the file pattern using the largest timestep
+    file_pattern = f"{datapath}Fluid_p*_t{largest_timestep}.vtk"
+    file_list = glob.glob(file_pattern)
+
+    # Sort the file list by core number using regex
+    file_list.sort(key=lambda x: int(re.search(r"_p(\d+)_", x).group(1)))
+
+    # Initialize an empty list to store the mesh objects
+    meshes = []
+
+    # Iterate through the sorted file list
+    for f_name in file_list:
+        # Read the VTK file and append the mesh object to the meshes list
+        meshes.append(pv.read(f_name))
+
+    # Merge the mesh objects in the meshes list and store the result
+    merged = meshes[0].merge(meshes[1:])
+
+    # Get the bounds of the merged mesh
+    (x_min, x_max, y_min, y_max, z_min, z_max) = merged.bounds
+
+    # Create equally spaced points along the x, y, and z axes
+    x_lin = np.arange(x_min, x_max + 1, 1)
+    y_lin = np.arange(y_min, y_max + 1, 1)
+    z_lin = np.arange(z_min, z_max + 1, 1)
+
+    # Create a rectilinear grid using the equally spaced points
+    grid = pv.RectilinearGrid(x_lin, y_lin, z_lin)
+
+    # Interpolate the merged mesh onto the rectilinear grid
+    result = grid.interpolate(merged)
+
+    # Return the interpolated grid
+    return result
+
+class ParameterUpdates:
+    def __init__(self, parameter_updates=None):
+        if parameter_updates is None:
+            self.parameter_updates = {
+                "parameters.xml": {},
+                "parametersMeshes.xml": {},
+                "parametersPositions.xml": {}
+            }
+        else:
+            self.parameter_updates = parameter_updates
+
+    def MPI(self, mpi):
+        self.parameter_updates["parameters.xml"].update({
+            ('MPI', 'cores', 'x'): str(mpi[0]),
+            ('MPI', 'cores', 'y'): str(mpi[1]),
+            ('MPI', 'cores', 'z'): str(mpi[2]),
+        })
+
+    def lattice(self, lattice_NX, lattice_NY, lattice_NZ):
+        self.parameter_updates["parameters.xml"].update({
+            ('lattice', 'size', 'NX'): str(lattice_NX),
+            ('lattice', 'size', 'NY'): str(lattice_NY),
+            ('lattice', 'size', 'NZ'): str(lattice_NZ),
+        })
+
+    def sim_time(self, t_end):
+        self.parameter_updates["parameters.xml"].update({
+            ('lattice', 'times', 'end'): str(t_end),
+        })
+
+    def checkpoint(self, step, restartLBM, restartMEM):
+        self.parameter_updates["parameters.xml"].update({
+                    ('checkpoint','save', 'step'): str(step),
+                    ('checkpoint','restart','timeLBM'): str(restartLBM),
+                    ('checkpoint','restart','timeMEM'): str(restartMEM),
+                    })
+
+    def relaxation(self, tau):
+        self.parameter_updates["parameters.xml"].update({
+            ('LBM','relaxation', 'tau'): str(tau),
+        })
+
+    def MRT(self, tauBulk, magic):
+        self.parameter_updates["parameters.xml"].update({
+            ('LBM', 'MRT', 'active'): "1",
+            ('LBM', 'MRT', 'tauBulk'): str(tauBulk),
+            ('LBM', 'MRT', 'Lambda'): str(magic),
+        })
+
+    def cross_slot_geometry(self, inlet_width, outlet_width, stenosis_width, stenosis_length):
+        self.parameter_updates["parameters.xml"].update({
+            ('boundaries', 'CrossSlot', 'active'): "1",
+            ('boundaries', 'CrossSlot', 'inletWidth'): str(inlet_width),
+            ('boundaries', 'CrossSlot', 'outletWidth'): str(outlet_width),
+            ('boundaries', 'CrossSlot', 'stenosisWidth'): str(stenosis_width),
+            ('boundaries', 'CrossSlot', 'stenosisLength'): str(stenosis_length),
+        })
+
+    def cross_slot_velocity(self, inlet_velocity):
+        self.parameter_updates["parameters.xml"].update({
+            ('boundaries', 'CrossSlot', 'inletVelocity'): str(inlet_velocity),
+        })
+
+    def cross_slot_vortex(self, vortex_force_mag, vortex_time_begin, vortex_time_end):
+        self.parameter_updates["parameters.xml"].update({
+            ('boundaries', 'CrossSlot', 'ForceTriggerMagnitude'): str(vortex_force_mag),
+            ('boundaries', 'CrossSlot', 'TimeBegin'): str(vortex_time_begin),
+            ('boundaries', 'CrossSlot', 'TimeEnd'): str(vortex_time_end),
+        })
+
+    def convergence(self, time_ignore, convergence):
+        self.parameter_updates["parameters.xml"].update({
+            ('convergence', 'steady', 'active'): "1",
+            ('convergence', 'steady', 'timeIgnore'): str(time_ignore),
+            ('convergence', 'steady', 'timeInterval'): "1000",
+            ('convergence', 'steady', 'threshold'): str(convergence),
+        })
+
+    def no_convergence(self):
+        self.parameter_updates["parameters.xml"].update({
+            ('convergence', 'steady', 'active'): "0",
+        })
+
+    def mesh_viscosity_contrast(self, viscosity_ratio):
+        self.parameter_updates["parametersMeshes.xml"].update({
+            ('viscosityContrast', 'indexField', 'active'): "1",
+            ('viscosityContrast', 'viscosity', 'ratio'): str(viscosity_ratio),
+        })
+
+    def mesh(self, radius=0, kV=0, kA=0, kalpha=0, kS=0, kB=0, density=0, shearViscosity=0, dilationalViscosity=0, kmaxwell_dilation=0, kmaxwell_shear=0):
+        self.parameter_updates["parametersMeshes.xml"].update({
+            ('mesh', 'general', 'radius'): str(radius),
+            ('mesh', 'general', 'file'): f"./MeshGenerator/sph_ico_{20*math.ceil(radius)**2}.msh",
+            ('mesh', 'physics', 'kV'): str(kV),
+            ('mesh', 'physics', 'kA'): str(kA),
+            ('mesh', 'physics', 'kalpha'): str(kalpha),
+            ('mesh', 'physics', 'kS'): str(kS),
+            ('mesh', 'physics', 'kB'): str(kB),
+            ('mesh', 'physics', 'density'): str(density),
+            ('mesh', 'physics','shearViscosity'): str(shearViscosity),
+            ('mesh', 'physics', 'dilationalViscosity'): str(dilationalViscosity),
+            ('mesh', 'physics', 'kmaxwell_dilation'): str(kmaxwell_dilation),
+            ('mesh', 'physics', 'kmaxwell_shear'): str(kmaxwell_shear),
+        })
+
+    def mesh_positions(self, X, Y, Z, angle="0", axisX="1", axisY="1", axisZ="1"):
+        self.parameter_updates["parametersPositions.xml"].update({
+            ('particle', 'X'): str(X),
+            ('particle', 'Y'): str(Y),
+            ('particle', 'Z'): str(Z),
+            ('particle', 'angle'): str(angle),
+            ('particle', 'axisX'): str(axisX),
+            ('particle', 'axisY'): str(axisY),
+            ('particle', 'axisZ'): str(axisZ),
+        })
+
+    def get_parameter_updates(self):
+        return self.parameter_updates
+
 
 class SimSetup:
     def __init__(self, folder_path):
