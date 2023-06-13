@@ -172,11 +172,11 @@ class ParameterUpdates:
             ('mesh', 'physics', 'kmaxwell_shear'): str(kmaxwell_shear),
         })
 
-    def mesh_positions(self, X, Y, Z, angle="0", axisX="1", axisY="1", axisZ="1"):
+    def mesh_positions(self, position, angle="0", axisX="1", axisY="1", axisZ="1"):
         self.parameter_updates["parametersPositions.xml"].update({
-            ('particle', 'X'): str(X),
-            ('particle', 'Y'): str(Y),
-            ('particle', 'Z'): str(Z),
+            ('particle', 'X'): str(position[0]),
+            ('particle', 'Y'): str(position[1]),
+            ('particle', 'Z'): str(position[2]),
             ('particle', 'angle'): str(angle),
             ('particle', 'axisX'): str(axisX),
             ('particle', 'axisY'): str(axisY),
@@ -200,7 +200,7 @@ class SimSetup:
                           os.path.join(folder_path, "parametersMeshes.xml"),
                           os.path.join(folder_path, "parametersPositions.xml")]
 
-    def prepare_and_run_simulation(self, directory_name, parameter_updates_by_file, num_cores=1, overwrite=False):
+    def prepare_and_run_simulation(self, directory_name, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False):
         """
         Runs the simulation in a new directory with the given name and updated parameters.
         The method handles multiple XML parameter files and updates the specified parameters in each file.
@@ -215,6 +215,8 @@ class SimSetup:
         FileSystem.create_directory(directory_name, overwrite)
         FileSystem.copy_file(os.path.join(self.folder_path, "LBCode"), directory_name)
         FileSystem.copy_directory(os.path.join(self.folder_path, "MeshGenerator"), directory_name)
+        if checkpoint:
+            FileSystem.copy_directory(os.path.join(self.folder_path, "Backup"), directory_name)
         XmlBioFM.update_and_write_parameter_files(self.folder_path, directory_name, parameter_updates_by_file)
         self.execute_simulation(directory_name, num_cores)
 
