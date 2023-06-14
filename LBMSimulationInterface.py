@@ -97,6 +97,11 @@ class ParameterUpdates:
             ('lattice', 'times', 'end'): str(t_end),
         })
 
+    def info_time(self, t_info):
+        self.parameter_updates["parameters.xml"].update({
+            ('lattice', 'times', 'info'): str(t_info),
+        })
+
     def checkpoint(self, step, restartLBM, restartMEM):
         self.parameter_updates["parameters.xml"].update({
                     ('checkpoint','save', 'step'): str(step),
@@ -200,7 +205,7 @@ class SimSetup:
                           os.path.join(folder_path, "parametersMeshes.xml"),
                           os.path.join(folder_path, "parametersPositions.xml")]
 
-    def prepare_and_run_simulation(self, directory_name, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False):
+    def prepare_and_run_simulation(self, directory_name, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False, logfile=None):
         """
         Runs the simulation in a new directory with the given name and updated parameters.
         The method handles multiple XML parameter files and updates the specified parameters in each file.
@@ -218,9 +223,9 @@ class SimSetup:
         if checkpoint:
             FileSystem.copy_directory(os.path.join(self.folder_path, "Backup"), directory_name)
         XmlBioFM.update_and_write_parameter_files(self.folder_path, directory_name, parameter_updates_by_file)
-        self.execute_simulation(directory_name, num_cores)
+        self.execute_simulation(directory_name, num_cores, logfile)
 
-    def execute_simulation(self, directory_name, num_cores):
+    def execute_simulation(self, directory_name, num_cores, logfile):
         """
         Executes the simulation in the specified directory.
 
@@ -239,6 +244,9 @@ class SimSetup:
             command = "./LBCode"
         else:
             command = f"mpiexec -n {num_cores} ./LBCode"
+
+        if logfile:
+            command += f" 2>&1 | tee {logfile}"
         os.system(command)
 
         # Restore the original working directory
