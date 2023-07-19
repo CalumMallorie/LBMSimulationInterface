@@ -164,17 +164,17 @@ class ParameterUpdates:
     def mesh(self, radius=0, kV=0, kA=0, kalpha=0, kS=0, kB=0, density=0, shearViscosity=0, dilationalViscosity=0, kmaxwell_dilation=0, kmaxwell_shear=0):
         self.parameter_updates["parametersMeshes.xml"].update({
             ('mesh', 'general', 'radius'): str(radius),
-            ('mesh', 'general', 'file'): f"./MeshGenerator/sph_ico_{20*math.ceil(radius)**2}.msh",
+            ('mesh', 'general', 'file'): f"./MeshGenerator/sph_ico_{20*math.ceil(radius*1.2)**2}.msh",
             ('mesh', 'physics', 'kV'): str(kV),
             ('mesh', 'physics', 'kA'): str(kA),
             ('mesh', 'physics', 'kalpha'): str(kalpha),
             ('mesh', 'physics', 'kS'): str(kS),
             ('mesh', 'physics', 'kB'): str(kB),
             ('mesh', 'physics', 'density'): str(density),
-            ('mesh', 'physics','shearViscosity'): str(shearViscosity),
-            ('mesh', 'physics', 'dilationalViscosity'): str(dilationalViscosity),
-            ('mesh', 'physics', 'kmaxwell_dilation'): str(kmaxwell_dilation),
-            ('mesh', 'physics', 'kmaxwell_shear'): str(kmaxwell_shear),
+            ('mesh', 'physics', 'ShearViscosity'): str(shearViscosity),
+            ('mesh', 'physics', 'DilationalViscosity'): str(dilationalViscosity),
+            ('mesh', 'physics', 'kMaxwell_dilation'): str(kmaxwell_dilation),
+            ('mesh', 'physics', 'kMaxwell_shear'): str(kmaxwell_shear),
         })
 
     def mesh_positions(self, position, angle="0", axisX="1", axisY="1", axisZ="1"):
