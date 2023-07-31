@@ -7,6 +7,7 @@ import glob
 import pyvista as pv
 import re
 import math
+import subprocess
 
 def viscosity(tau):
     '''Calculates the lattice viscosity based on tau'''
@@ -223,7 +224,8 @@ class SimSetup:
         if checkpoint:
             FileSystem.copy_directory(os.path.join(self.folder_path, "Backup"), directory_name)
         XmlBioFM.update_and_write_parameter_files(self.folder_path, directory_name, parameter_updates_by_file)
-        self.execute_simulation(directory_name, num_cores, logfile)
+        exit_code = self.execute_simulation(directory_name, num_cores, logfile)
+        return exit_code
 
     def execute_simulation(self, directory_name, num_cores, logfile):
         """
@@ -241,16 +243,24 @@ class SimSetup:
 
         # Run the simulation with command depending on number of cores
         if num_cores == 1:
-            command = "./LBCode"
+            command = ["./LBCode"]
         else:
-            command = f"mpiexec -n {num_cores} ./LBCode"
+            command = ["mpiexec", "-n", str(num_cores), "./LBCode"]
 
         if logfile:
-            command += f" 2>&1 | tee {logfile}"
-        os.system(command)
+            with open(logfile, 'w') as f:
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                exit_code = process.wait()
+                for line in process.stdout:
+                    print(line.decode(), end='', file=f)
+        else:
+            process = subprocess.Popen(command)
+            exit_code = process.wait()
 
         # Restore the original working directory
         os.chdir(original_cwd)
+
+        return exit_code
 
 class FileSystem:
     @staticmethod
