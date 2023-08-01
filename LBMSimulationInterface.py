@@ -8,6 +8,7 @@ import pyvista as pv
 import re
 import math
 import subprocess
+import json
 
 def viscosity(tau):
     '''Calculates the lattice viscosity based on tau'''
@@ -194,19 +195,17 @@ class ParameterUpdates:
 
 
 class SimSetup:
-    def __init__(self, folder_path):
+    def __init__(self, template_path, root_path):
         """
         Initializes the SimSetup object with the folder containing the parameter files.
 
         Args:
             folder_path (str): Path to the folder containing the parameter files.
         """
-        self.folder_path = folder_path
-        self.xml_paths = [os.path.join(folder_path, "parameters.xml"),
-                          os.path.join(folder_path, "parametersMeshes.xml"),
-                          os.path.join(folder_path, "parametersPositions.xml")]
+        self.template_path = template_path
+        self.root_path = root_path
 
-    def prepare_and_run_simulation(self, directory_name, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False, logfile=None):
+    def prepare_and_run_simulation(self, simulation_ID, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False, logfile=None):
         """
         Runs the simulation in a new directory with the given name and updated parameters.
         The method handles multiple XML parameter files and updates the specified parameters in each file.
@@ -218,12 +217,16 @@ class SimSetup:
             num_cores (int, optional): Number of cores to use for the simulation. Defaults to 1.
             overwrite (bool, optional): If True, overwrite the previous simulation attempt. Defaults to False.
         """
+
+        FileSystem.create_root(self.root_path)
+        directory_name = os.path.join(self.root_path, simulation_ID)
+        
         FileSystem.create_directory(directory_name, overwrite)
-        FileSystem.copy_file(os.path.join(self.folder_path, "LBCode"), directory_name)
-        FileSystem.copy_directory(os.path.join(self.folder_path, "MeshGenerator"), directory_name)
+        FileSystem.copy_file(os.path.join(self.template_path, "LBCode"), directory_name)
+        FileSystem.copy_directory(os.path.join(self.template_path, "MeshGenerator"), directory_name)
         if checkpoint:
-            FileSystem.copy_directory(os.path.join(self.folder_path, "Backup"), directory_name)
-        XmlBioFM.update_and_write_parameter_files(self.folder_path, directory_name, parameter_updates_by_file)
+            FileSystem.copy_directory(os.path.join(self.template_path, "Backup"), directory_name)
+        XmlBioFM.update_and_write_parameter_files(self.template_path, directory_name, parameter_updates_by_file)
         exit_code = self.execute_simulation(directory_name, num_cores, logfile)
         return exit_code
 
@@ -304,6 +307,29 @@ class FileSystem:
             shutil.copytree(source_directory, destination)
         else:
             print(f"Error: The source directory {source_directory} does not exist.")
+
+    @staticmethod
+    def create_root(root_directory):
+        FileSystem.create_directory(root_directory)
+        simulation_lookup_path = root_directory + "simulation_lookup.json"
+        with open(simulation_lookup_path, 'w') as lookup_file:
+            json.dump({}, lookup_file)  # Create an empty JSON object to start
+
+    @staticmethod
+    def update_json(root_directory, simulation_id, parameter_updates_by_file, exit_code):
+        lookup_file = root_directory + "simulation_lookup.json"
+        with open(lookup_file, 'r+') as lookup_file:
+                    lookup_data = json.load(lookup_file)
+                    lookup_data[str(simulation_id)] = {"Simulation ID": simulation_id, "Parameters": parameter_updates_by_file, "Exit code": exit_code}  # Add new entry
+                    lookup_file.seek(0)  # Move file pointer to beginning
+                    json.dump(lookup_data, lookup_file, indent=4)
+                    lookup_file.truncate()  # Delete anything that's left after the new JSON object
+
+        # Write the parameters to a simulation_info.json file in the simulation folder
+        simulation_subfolder = os.path.join(root_directory, str(simulation_id))
+        simulation_info_path = os.path.join(simulation_subfolder, "simulation_info.json")
+        with open(simulation_info_path, 'w') as info_file:
+            json.dump({"Simulation ID": simulation_id, "Parameters": parameter_updates_by_file}, info_file, indent=4)
 
 
 class XmlBioFM:
