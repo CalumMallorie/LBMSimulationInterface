@@ -205,7 +205,7 @@ class SimSetup:
         self.template_path = template_path
         self.root_path = root_path
 
-    def prepare_and_run_simulation(self, simulation_ID, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False, logfile=None):
+    def prepare_and_run_simulation(self, parameter_updates_by_file, num_cores=1, overwrite=False, checkpoint=False, logfile=None):
         """
         Runs the simulation in a new directory with the given name and updated parameters.
         The method handles multiple XML parameter files and updates the specified parameters in each file.
@@ -217,9 +217,10 @@ class SimSetup:
             num_cores (int, optional): Number of cores to use for the simulation. Defaults to 1.
             overwrite (bool, optional): If True, overwrite the previous simulation attempt. Defaults to False.
         """
-
+        
         FileSystem.create_root(self.root_path)
-        directory_name = os.path.join(self.root_path, simulation_ID)
+        simulation_ID = FileSystem.get_next_ID(os.path.join(self.root_path, "simulation_lookup.json"))
+        directory_name = os.path.join(self.root_path, str(simulation_ID))
         
         FileSystem.create_directory(directory_name, overwrite)
         FileSystem.copy_file(os.path.join(self.template_path, "LBCode"), directory_name)
@@ -228,6 +229,7 @@ class SimSetup:
             FileSystem.copy_directory(os.path.join(self.template_path, "Backup"), directory_name)
         XmlBioFM.update_and_write_parameter_files(self.template_path, directory_name, parameter_updates_by_file)
         exit_code = self.execute_simulation(directory_name, num_cores, logfile)
+        
         return exit_code
 
     def execute_simulation(self, directory_name, num_cores, logfile):
@@ -253,9 +255,13 @@ class SimSetup:
         if logfile:
             with open(logfile, 'w') as f:
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+                for line in iter(process.stdout.readline, b''):
+                    f.write(line.decode())
+                    f.flush()  # This line ensures that the file is written to disk after each line
+
+                process.stdout.close()
                 exit_code = process.wait()
-                for line in process.stdout:
-                    print(line.decode(), end='', file=f)
         else:
             process = subprocess.Popen(command)
             exit_code = process.wait()
@@ -310,26 +316,49 @@ class FileSystem:
 
     @staticmethod
     def create_root(root_directory):
-        FileSystem.create_directory(root_directory)
-        simulation_lookup_path = root_directory + "simulation_lookup.json"
-        with open(simulation_lookup_path, 'w') as lookup_file:
-            json.dump({}, lookup_file)  # Create an empty JSON object to start
+        if not os.path.exists(root_directory):
+            os.makedirs(root_directory)
+            simulation_lookup_path = root_directory + "simulation_lookup.json"
+            # with open(simulation_lookup_path, 'w') as lookup_file:
+            #     json.dump({}, lookup_file)  # Create an empty JSON object to start
 
     @staticmethod
-    def update_json(root_directory, simulation_id, parameter_updates_by_file, exit_code):
-        lookup_file = root_directory + "simulation_lookup.json"
-        with open(lookup_file, 'r+') as lookup_file:
-                    lookup_data = json.load(lookup_file)
-                    lookup_data[str(simulation_id)] = {"Simulation ID": simulation_id, "Parameters": parameter_updates_by_file, "Exit code": exit_code}  # Add new entry
-                    lookup_file.seek(0)  # Move file pointer to beginning
-                    json.dump(lookup_data, lookup_file, indent=4)
-                    lookup_file.truncate()  # Delete anything that's left after the new JSON object
+    def get_next_ID(lookup_file):
+        # If the file does not exist, return 0
+        if not os.path.isfile(lookup_file):
+            return 0
+        else:
+            # Open the file and find the maximum Simulation ID
+            with open(lookup_file, 'r') as infile:
+                lookup_data = json.load(infile)
+                return max(map(int, lookup_data.keys())) + 1  # Find the max Simulation ID and add 1 to it
+
+
+    @staticmethod
+    def update_json(root_directory, parameters_dictionary, exit_code):
+        lookup_file = os.path.join(root_directory, "simulation_lookup.json")
+
+        # Get the next simulation ID
+        simulation_ID = FileSystem.get_next_ID(lookup_file)
+
+        # If the file does not exist, create it with an empty dictionary
+        if simulation_ID == 0:
+            with open(lookup_file, 'w') as outfile:
+                json.dump({}, outfile)
+
+        # Open the file and add the new simulation data
+        with open(lookup_file, 'r+') as f:
+            lookup_data = json.load(f)
+            lookup_data[str(simulation_ID)] = {"Simulation ID": simulation_ID, "Parameters": parameters_dictionary, "Exit code": exit_code}  # Add new entry
+            f.seek(0)  # Move file pointer to beginning
+            json.dump(lookup_data, f, indent=4)
+            f.truncate()  # Delete anything that's left after the new JSON object
 
         # Write the parameters to a simulation_info.json file in the simulation folder
-        simulation_subfolder = os.path.join(root_directory, str(simulation_id))
+        simulation_subfolder = os.path.join(root_directory, str(simulation_ID))
         simulation_info_path = os.path.join(simulation_subfolder, "simulation_info.json")
         with open(simulation_info_path, 'w') as info_file:
-            json.dump({"Simulation ID": simulation_id, "Parameters": parameter_updates_by_file}, info_file, indent=4)
+            json.dump({"Simulation ID": simulation_ID, "Parameters": parameters_dictionary}, info_file, indent=4)
 
 
 class XmlBioFM:
