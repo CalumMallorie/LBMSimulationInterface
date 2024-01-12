@@ -145,6 +145,13 @@ class ParameterUpdates:
             ('boundaries', 'Duct', 'active'): "1",
         })
 
+    def forcing(self, force):
+        self.parameter_updates["parameters.xml"].update({
+            ('forces', 'gravity', 'x'): str(force[0]),
+            ('forces', 'gravity', 'y'): str(force[1]),
+            ('forces', 'gravity', 'z'): str(force[2]),
+        })
+
     def cross_slot_velocity(self, inlet_velocity):
         self.parameter_updates["parameters.xml"].update({
             ('boundaries', 'CrossSlot', 'inletVelocity'): str(inlet_velocity),
