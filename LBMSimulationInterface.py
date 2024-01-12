@@ -139,6 +139,11 @@ class ParameterUpdates:
             ('boundaries', 'CrossSlot', 'stenosisWidth'): str(stenosis_width),
             ('boundaries', 'CrossSlot', 'stenosisLength'): str(stenosis_length),
         })
+    
+    def duct_geometry(self):
+        self.parameter_updates["parameters.xml"].update({
+            ('boundaries', 'Duct', 'active'): "1",
+        })
 
     def cross_slot_velocity(self, inlet_velocity):
         self.parameter_updates["parameters.xml"].update({
