@@ -104,6 +104,14 @@ class ParameterUpdates:
             ('lattice', 'times', 'info'): str(t_info),
         })
 
+    def vtk_save(self, fluid_step=-1, particle_step=-1):
+        self.parameter_updates["parameters.xml"].update({
+            ('data', 'fluid', 'VTK', 'active'): str(1) if fluid_step > 0 else str(0),
+            ('data', 'fluid', 'VTK', 'step'): str(fluid_step),
+            ('data', 'particles', 'VTK', 'active'): str(1) if particle_step > 0 else str(0),
+            ('data', 'particles', 'VTK', 'step'): str(particle_step),
+        })
+
     def checkpoint(self, step, restartLBM, restartMEM):
         self.parameter_updates["parameters.xml"].update({
                     ('checkpoint','save', 'step'): str(step),
