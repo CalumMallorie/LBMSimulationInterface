@@ -2,3 +2,5 @@ test/simulations/*
 test/template/MeshGenerator/*
 .venv
 .DS_Store
+VTK*
+*.vtk
