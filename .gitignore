@@ -4,3 +4,4 @@ test/template/MeshGenerator/*
 .DS_Store
 VTK*
 *.vtk
+*.egg-info

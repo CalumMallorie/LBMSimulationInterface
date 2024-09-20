@@ -67,8 +67,8 @@ if __name__ == '__main__':
         parameter_updates = couette_sim(Re_p, Ca, confinement, length_z=32)
 
         setup = lbmi.SimulationSetup(
-            template_path="test/template", 
-            root_path="test/simulations", # the root path for the simulation datas
+            template_path="tutorial_example/template", 
+            root_path="tutorial_example/data", # the root path for the simulation datas
             parameter_updates=parameter_updates,
             simulation_id=f'Ca={Ca}', # the subfolder name (counts from 0 if not specified)
             overwrite=True, # only set this to true if you're prepared to lose data!
