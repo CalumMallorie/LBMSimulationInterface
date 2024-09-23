@@ -132,10 +132,13 @@ class ParameterUpdates:
             ('boundaries', 'Duct', 'active'): "1",
         })
 
-    def couette(self, velocity):
+    def couette(self, vel_bot_x, vel_bot_y, vel_top_x, vel_top_y):
         self.parameter_updates["parameters.xml"].update({
             ('boundaries', 'Couette', 'active'): "1",
-            ('boundaries', 'Couette', 'velocity'): str(velocity),
+            ('boundaries', 'Couette', 'velBotX'): str(vel_bot_x),
+            ('boundaries', 'Couette', 'velBotY'): str(vel_bot_y),
+            ('boundaries', 'Couette', 'velTopX'): str(vel_top_x),
+            ('boundaries', 'Couette', 'velTopY'): str(vel_top_y),
         })
 
     def forcing(self, force):

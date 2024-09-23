@@ -38,6 +38,7 @@ def couette_sim(Re_p, Ca, confinement, length_z):
     shear_rate = 2 * velocity / length_z
     Couette_velTopX = velocity 
     Couette_velBotX = -velocity
+    parameter_updates.couette(vel_bot_x=Couette_velBotX, vel_bot_y=0, vel_top_x=Couette_velTopX, vel_top_y=0) # the y velocities are zero
 
     # Set particle properties based on Ca and Bq values:
     kS = lbmi.calculate_viscosity(tau)*shear_rate*meshRadius/Ca # set kappa_s by Ca=visc*gammadot*radius/kS
