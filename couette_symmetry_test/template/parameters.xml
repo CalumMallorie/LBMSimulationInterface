@@ -29,7 +29,7 @@
    <data>
       <fluid>
       	 <localVTK active="0" step="100" boxSize="100"/>
-         <VTK active="1" step="50000000"/>
+         <VTK active="1" step="1000"/>
          <statistics active="1" step="100"/>
       </fluid>
       <particles>
@@ -39,7 +39,6 @@
    </data>
    <boundaries>
       <Couette active="1" velBotX="0" velBotY="0" velTopX="0.03" velTopY="0"/>
-      <CrossSlot active="0" inletWidth="136" outletWidth="136" stenosisWidth="136" stenosisLength="0.0" inletVelocity="0.024019607843137277" ForceTriggerMagnitude="1e-06" TimeBegin="10000.0" TimeEnd="20000.0"/>
    </boundaries>
    <convergence>
       <steady active="1" timeIgnore="0" timeInterval="1000" threshold="1e-08"/>

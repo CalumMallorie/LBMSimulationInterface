@@ -6,4 +6,4 @@ VTK*
 *.vtk
 *.egg-info
 */data/
-*/template/
+# */template/

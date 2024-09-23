@@ -28,8 +28,8 @@
    </forces>
    <data>
       <fluid>
-      	 <localVTK active="0" step="100" boxSize="100"/>
-         <VTK active="1" step="50000000"/>
+      	<localVTK active="0" step="100" boxSize="100"/>
+         <VTK active="1" step="1000"/>
          <statistics active="1" step="100"/>
       </fluid>
       <particles>
