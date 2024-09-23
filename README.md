@@ -165,3 +165,105 @@ In the `main.py`, you will:
 - Initialize SimulationSetup with the template path, simulations root, and parameter updates.
 - Run the simulations.
 
+## Running simulations
+
+Run your simulation script:
+```bash
+python main.py
+```
+
+This will:
+
+- Prepare simulation directories and parameter files.
+- Execute simulations based on the defined parameters.
+- Store outputs in the simulations/ directory.
+
+## Example simulation script 
+
+```python
+# main.py
+
+from LBMSimulationInterface import SimulationSetup, ParameterUpdates
+import os
+
+def main():
+    # Define paths
+    study_dir = os.path.dirname(__file__)
+    template_path = os.path.join(study_dir, 'template')
+    simulations_root = os.path.join(study_dir, 'simulations')
+
+    # Simulation parameters
+    Re_values = [10, 50, 100]
+    Ca_values = [0.01, 0.1, 1.0]
+
+    for Re in Re_values:
+        for Ca in Ca_values:
+            # Unique simulation ID
+            sim_id = f'Re={Re}_Ca={Ca}'
+            print(f"Starting simulation {sim_id}")
+
+            # Parameter updates
+            param_updates = ParameterUpdates()
+            param_updates.lattice(NX=100, NY=100, NZ=100)
+            param_updates.sim_time(t_end=10000)
+            param_updates.MPI((2, 2, 2))
+            # Additional parameter updates based on Re and Ca
+
+            # Initialize SimulationSetup
+            sim_setup = SimulationSetup(
+                template_path=template_path,
+                root_path=simulations_root,
+                parameter_updates=param_updates,
+                overwrite=True,
+                simulation_id=sim_id
+            )
+
+            # Run simulation
+            exit_code = sim_setup.run_simulation(num_cores=4, logfile=f'{sim_id}.log')
+            print(f"Simulation {sim_id} finished with exit code {exit_code}")
+
+if __name__ == '__main__':
+    main()
+```
+
+## Package components
+### SimulationSetup class
+-**Purpose**: Prepares simulation directories, copies necessary files, updates parameter files, and runs simulations.
+-**Usage**: 
+```python
+sim_setup = SimulationSetup(
+    template_path='path/to/template',
+    root_path='path/to/simulations',
+    parameter_updates=param_updates,
+    overwrite=True,
+    simulation_id='unique_sim_id'
+)
+```
+-**Methods**: 
+`run_simulation(num_cores=1, logfile=None)`: Executes the simulation.
+
+### ParameterUpdates class
+-**Purpose**:  Manages updates to simulation parameter XML files.
+```python
+param_updates = ParameterUpdates()
+param_updates.lattice(NX=100, NY=100, NZ=100)
+param_updates.sim_time(t_end=10000)
+```
+-**Methods**: 
+Each section in the .xml parameter files will have it's own method in the `ParameterUpdates` class, e.g. `lattice(NX, NY, NZ)` sets the lbm lattice size.
+Currently, there is not an exhaustive set of these methods, as I have only added those which I use. 
+I expect that any user of this library will add their own methods to the class for their own purposes.
+
+### LBM utilities
+-**Module**: `lbm_utils.py`
+-**Useage**: This module contains functions to carry out numerical 'sanity checks', which are numerous in LBM uses. 
+A good example of this is the `check_grid_reynolds_number(tau, velocity)` function, which computes the grid Reynolds number, which must be sufficiently low for stable LBM simulations.
+
+### VTK utilities
+-**Module**: `vtk_utils.py`
+-**Functions**:
+- `merge_latest_fluid_vtk_files(data_path)`: Merges VTK files for the latest timestep.
+- `merge_all_timesteps(data_path, output_path, num_cores=8)`: Merges VTK files for all timesteps in a simulation directory.
+
+## License
+This project is licensed under the MIT License.
