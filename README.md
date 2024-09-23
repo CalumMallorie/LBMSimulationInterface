@@ -22,15 +22,9 @@ A Python interface for setting up and running Lattice-Boltzmann Method (LBM) sim
 - [Package Components](#package-components)
   - [SimulationSetup Class](#simulationsetup-class)
   - [ParameterUpdates Class](#parameterupdates-class)
-  - [FileSystem Class](#filesystem-class)
-  - [XmlBioFM Class](#xmlbiofm-class)
   - [Physics Utilities](#physics-utilities)
   - [VTK Utilities](#vtk-utilities)
-- [Troubleshooting](#troubleshooting)
-- [Additional Notes](#additional-notes)
-- [Contributing](#contributing)
 - [License](#license)
-- [Contact](#contact)
 
 ---
 
