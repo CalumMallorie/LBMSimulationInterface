@@ -5,3 +5,5 @@ test/template/MeshGenerator/*
 VTK*
 *.vtk
 *.egg-info
+*/data/
+*/template/
