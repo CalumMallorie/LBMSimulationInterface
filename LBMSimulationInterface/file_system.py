@@ -102,7 +102,6 @@ class FileSystem:
         if simulation_ID == 0:
             with open(lookup_file, 'w') as outfile:
                 json.dump({}, outfile)
-
         with open(lookup_file, 'r+') as f:
             lookup_data = json.load(f)
             lookup_data[str(simulation_ID)] = {
@@ -122,3 +121,46 @@ class FileSystem:
                 "Simulation ID": simulation_ID,
                 "Parameters": parameters_dictionary
             }, info_file, indent=4)
+        
+    @staticmethod
+    def check_simulation_exists(root_directory: str, parameter_updates: Dict[str, Any]) -> bool:
+        """
+        Check if any simulation with matching parameters exists in the lookup json.
+        If found, verify consistency with simulation_info.json.
+
+        Args:
+            root_directory: Root directory containing simulation data
+            parameter_updates: Dictionary of parameter updates to match against
+
+        Returns:
+            bool: True if matching simulation exists and is consistent
+
+        Raises:
+            ValueError: If simulation found in lookup but mismatch in simulation_info.json
+        """
+        lookup_file = Path(root_directory) / "simulation_lookup.json"
+        
+        # Find matching simulation by parameters
+        matching_simulation_id = None
+        with open(lookup_file, 'r') as infile:
+            lookup_data = json.load(infile)
+            for simulation_id, simulation_info in lookup_data.items():
+                if simulation_info["Parameters"] == parameter_updates:
+                    matching_simulation_id = simulation_id
+                    break
+        
+        if matching_simulation_id is None:
+            return False
+        
+        # Verify consistency with simulation_info.json
+        simulation_subfolder = Path(root_directory) / str(matching_simulation_id)
+        simulation_info_path = simulation_subfolder / "simulation_info.json"
+        
+        with open(simulation_info_path, 'r') as info_file:
+            simulation_info = json.load(info_file)
+            if simulation_info["Parameters"] != parameter_updates:
+                raise ValueError(f"Simulation {matching_simulation_id} found in lookup json but mismatch in simulation_info.json")
+        
+        return True
+
+
