@@ -195,6 +195,18 @@ class ParameterUpdates:
             ('mesh', 'physics', 'kMaxwell_shear'): str(kmaxwell_shear),
         })
 
+    def mesh_kostas(self, radius=0, kV=0, kA=0, kalpha=0, kS=0, kB=0, density=1):
+        self.parameter_updates["parametersMeshes.xml"].update({
+            ('mesh', 'general', 'radius'): str(radius),
+            ('mesh', 'general', 'file'): f"./MeshGenerator/sph_ico_{20*math.ceil(radius*1.2)**2}.msh",
+            ('mesh', 'physics', 'kV'): str(kV),
+            ('mesh', 'physics', 'kA'): str(kA),
+            ('mesh', 'physics', 'kalpha'): str(kalpha),
+            ('mesh', 'physics', 'kS'): str(kS),
+            ('mesh', 'physics', 'kB'): str(kB),     
+            ('mesh', 'physics', 'density'): str(density),
+        })
+
     def mesh_positions(self, position, angle="0", axisX="1", axisY="1", axisZ="1"):
         self.parameter_updates["parametersPositions.xml"].update({
             ('particle', 'X'): str(position[0]),
@@ -206,11 +218,17 @@ class ParameterUpdates:
             ('particle', 'axisZ'): str(axisZ),
         })
 
-    def get_parameter_updates(self) -> Dict[str, Dict[Tuple[str, ...], Any]]:
+    def get_parameter_updates(self) -> Dict[str, Dict[str, Any]]:
         """
-        Get the dictionary of parameter updates.
+        Get the dictionary of parameter updates, converting tuple keys to strings for JSON serialization.
 
         Returns:
-            Dict[str, Dict[Tuple[str, ...], Any]]: Parameter updates.
+            Dict[str, Dict[str, Any]]: Parameter updates with string keys.
         """
-        return self.parameter_updates
+        # Convert the nested dictionary structure to use string keys
+        json_compatible_updates = {}
+        for file_key, updates in self.parameter_updates.items():
+            json_compatible_updates[file_key] = {
+                '.'.join(k): str(v) for k, v in updates.items()
+            }
+        return json_compatible_updates
