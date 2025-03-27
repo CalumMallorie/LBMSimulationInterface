@@ -80,6 +80,12 @@ def merge_all_timesteps(data_path: str, output_path: str, num_cores: int = 8):
     sim_root = pathlib.Path(data_path)
     target_root = pathlib.Path(output_path)
 
+    # Handle case where input and output paths are the same
+    if sim_root == target_root:
+        # Create a temporary directory with a unique name
+        temp_dir = sim_root.parent / f"{sim_root.name}_temp_merge"
+        target_root = temp_dir
+
     # Ensure output directory exists
     target_root.mkdir(parents=True, exist_ok=True)
 
@@ -88,6 +94,13 @@ def merge_all_timesteps(data_path: str, output_path: str, num_cores: int = 8):
 
     # Convert and merge VTK files
     convert_simulation_directories(sim_root, target_root, num_cores)
+
+    # If we used a temporary directory, replace the original with the merged version
+    if sim_root == pathlib.Path(output_path):
+        # Remove the original directory
+        shutil.rmtree(sim_root)
+        # Rename the temporary directory to the original name
+        target_root.rename(sim_root)
 
 def copy_simulation_directories(source: pathlib.Path, destination: pathlib.Path):
     """
