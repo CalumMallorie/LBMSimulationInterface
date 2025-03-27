@@ -6,4 +6,14 @@ VTK*
 *.vtk
 *.egg-info
 */data/
-# */template/
+*/data.bak/
+*/template/Backup/
+*/template/MeshGenerator/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
