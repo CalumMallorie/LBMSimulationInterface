@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+
+   <MPI>
+      <cores x="2" y="2" z="2"/>
+   </MPI>
+   <lattice>
+      <size NX="560" NY="560" NZ="50"/>
+      <times start="0" end="1000000.0" info="100" sanity="1000"/>
+   </lattice>
+   <checkpoint>
+      <save active="-1" step="73000"/>
+      <restart timeLBM="73000" timeMEM="-1"/>
+   </checkpoint>
+   <LBM>
+      <relaxation tau="0.55"/>
+      <MRT active="-1" tauBulk="0.8" Lambda="0.25"/>
+   </LBM>
+   <IBM>
+      <stencil range="3"/>
+      <displacement disp="0.5"/>
+      <start time="1"/>
+   </IBM>
+   <init>
+      <constant active="1" density="1.0" velX="0.0" velY="0.0" velZ="0.0"/>
+   </init>
+   <forces>
+      <gravity x="0" y="0" z="0" tOn="1" tOff="-1" flowAlignment="0"/>
+   </forces>
+   <data>
+      <fluid>
+         <VTK active="-1" step="1000000"/>
+         <statistics active="1" step="10"/>
+      </fluid>
+      <particles>
+         <VTK active="1" step="100"/>
+         <statistics active="1" step="10"/>
+      </particles>
+   </data>
+   <boundaries>
+      <Couette active="0" velBotX="0" velBotY="0" velTopX="0" velTopY="0"/>
+      <CrossSlot active="1" inletWidth="80" outletWidth="80" inletVelocity="0.025" ForceTriggerMagnitude="0" TimeBegin="10000.0" TimeEnd="20000.0" flagRestrictParticle="1" initial_y="279.868" k_y="4" initial_z="25" k_z="4" DeActivation="180"/>
+   </boundaries>
+   <convergence>
+      <steady active="-1" timeIgnore="20000.0" timeInterval="1000" threshold="1e-08"/>
+   </convergence>
+

@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+
+   <init>
+      <autoPosition active="0" randomSeed="0"/>
+      <overlapCheck particleParticle="1" particleObstacle="1"/>
+      <growth active="0" relativeRadius="4" growthMass="1" numSteps="1" infoStep="1"/>
+      <normalisation method="0"/>
+   </init>
+   <interaction>
+      <particleParticle strength="0.01" range="1"/>
+      <particleObstacle strength="0.1" range="1.5"/>
+   </interaction>
+   <viscosityContrast>
+      <indexField active="0"/>
+      <viscosity ratio="1"/>
+   </viscosityContrast>
+   <mesh>
+      <general numParticles="1" file="./MeshGenerator/sph_ico_2000.msh" radius="9.6"/>
+      <physics kV="1" kA="0" kalpha="0.16666667" kS="0.0833333333" kB="0.0220416" density="1"/>
+   </mesh>
+
