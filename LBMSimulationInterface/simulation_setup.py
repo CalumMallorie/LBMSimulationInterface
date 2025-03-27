@@ -1,6 +1,7 @@
 # simulation_setup.py
 
 import os
+import json
 import subprocess
 from typing import Optional
 from .file_system import FileSystem
@@ -58,12 +59,15 @@ class SimulationSetup:
         FileSystem.copy_directory(
             os.path.join(self.template_path, "MeshGenerator"), directory_name
         )
+        if os.path.exists(os.path.join(self.template_path, "Backup")):
+            FileSystem.copy_directory(os.path.join(self.template_path, "Backup"), directory_name)
         # Update and write parameter files
         XmlBioFM.update_and_write_parameter_files(
             self.template_path,
             directory_name,
             self.parameter_updates.get_parameter_updates(),
         )
+        FileSystem.update_json(self.root_path, self.parameter_updates.get_parameter_updates(), 0)
         return directory_name
 
     def run_simulation(
