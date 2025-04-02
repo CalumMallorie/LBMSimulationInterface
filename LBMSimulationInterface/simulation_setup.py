@@ -67,7 +67,7 @@ class SimulationSetup:
             directory_name,
             self.parameter_updates.get_parameter_updates(),
         )
-        FileSystem.update_json(self.root_path, self.parameter_updates.get_parameter_updates(), 0)
+        # FileSystem.update_json(self.root_path, self.parameter_updates.get_parameter_updates(), 0)
         return directory_name
 
     def run_simulation(
