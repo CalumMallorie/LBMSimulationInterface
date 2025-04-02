@@ -126,6 +126,14 @@ class ParameterUpdates:
             ('boundaries', 'CrossSlot', 'stenosisWidth'): str(stenosis_width),
             ('boundaries', 'CrossSlot', 'stenosisLength'): str(stenosis_length),
         })
+
+    def kostas_cross_slot_x_z_restrict(self, initial_y, initial_z, k_y=4, k_z=4):
+        self.parameter_updates["parameters.xml"].update({
+            ('boundaries', 'CrossSlot', 'initial_y'): str(initial_y),
+            ('boundaries', 'CrossSlot', 'k_y'): str(k_y),
+            ('boundaries', 'CrossSlot', 'initial_z'): str(initial_z),
+            ('boundaries', 'CrossSlot', 'k_z'): str(k_z),
+        })
     
     def duct_geometry(self):
         self.parameter_updates["parameters.xml"].update({

@@ -6,8 +6,6 @@ import pprint as pp
 import os
 def cross_slot_simulation(Ca, Z0, X0):
     parameter_updates = lbmi.ParameterUpdates()
-    parameter_updates.sim_time(1)
-    parameter_updates.checkpoint(-1,-1,-1)
 
     kS = (1/60)*(0.025*9.6)/(Ca*48)
     kalpha = 2*kS
@@ -20,8 +18,11 @@ def cross_slot_simulation(Ca, Z0, X0):
     z0 = Z0*(48/2) + (50/2)
     x0 = (560/2) - X0*(80/2)
 
+    parameter_updates.kostas_cross_slot_x_z_restrict(initial_y=x0, initial_z=z0, k_y=4, k_z=4)
+
 
     parameter_updates.mesh_positions(position=[20, x0, z0], angle="0", axisX="1", axisY="1", axisZ="1")
+
     return parameter_updates
 
 if __name__ == "__main__":
